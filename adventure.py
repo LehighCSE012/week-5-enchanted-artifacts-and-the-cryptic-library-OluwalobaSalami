@@ -1,9 +1,10 @@
 import random
 
-def enter_dungeon(player_health, inventory, dungeon_rooms):
+def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
     """
     this goes through different rooms
     """
+    player_health = player_stats['health']
     for room in dungeon_rooms:
         print(room[0])
         if room[1]:
@@ -18,9 +19,9 @@ def enter_dungeon(player_health, inventory, dungeon_rooms):
                 else:
                     print(room[3][1])
                     #Updating player health
-            player_health += room[3][2]
-            if player_health < 0:
-                player_health = 0
+            updated_player_health = player_health + room[3][2]
+            if updated_player_health < 0:
+                updated_player_health = 0
                 print("You are barely alive!")
 
         elif room[2] == "trap":
@@ -33,15 +34,42 @@ def enter_dungeon(player_health, inventory, dungeon_rooms):
                 else:
                     print(room[3][1])
                     #Updating player health
-            player_health += room[3][2]
-            if player_health < 0:
-                player_health = 0
+            updated_player_health = player_health + room[3][2]
+            if updated_player_health < 0:
+                updated_player_health = 0
                 print("You are barely alive!")
+
+        elif room[2] == "library":
+            clue_list = ["The treasure is hidden where the dragon sleeps.", 
+                        "The key lies with the gnome.", 
+                        "Beware the shadows.", 
+                        "The amulet unlocks the final door."
+                        ]
+            samples = random.sample(clue_list, 2)
+            for clue in samples:
+                find_clue(clues, clue)
+            if "staff_of_wisdom" in inventory:
+                print("You understand the meaning of the clues and can now bypass a puzzle challenge in one of the other rooms.")
+
         elif room[2] == "none":
             print("There doesn't seem to be a challenge in this room. You move on.")
         display_inventory(inventory)
-    print(f"Your current health: {player_health}")
-    return player_health, inventory
+
+    print(f"Your current health: {updated_player_health}")
+    updated_dict = {"health" : updated_player_health}
+    """Updating player health"""
+    player_stats.update(updated_dict)
+    return player_stats, inventory, clues
+
+def find_clue(clues, new_clue):
+    """This is for clues."""
+    if new_clue in clues:
+        print("You already know this clue.")
+    else:
+        """add new clue"""
+        clues.add(new_clue)
+        print(f"You discovered a new clue: {[new_clue]}")
+    return clues
 
 def acquire_item(inventory, item):
     """
@@ -63,9 +91,12 @@ def display_inventory(inventory):
             #to get the items position in the list
             print(f"{inventory.index(item) + 1}. {item}")
 
-def display_player_status(player_health):
+def display_player_status(player_stats):
     """This displays player status"""
+    player_health = player_stats['health']
     print(f"Your current health: {player_health}")
+    player_attack = player_stats['attack']
+    print(f"Your current attack: {player_attack}")
 
 def handle_path_choice(player_stats):
     """This is for the choice to go left or right"""
@@ -108,7 +139,7 @@ def combat_encounter(player_stats, monster_health, has_treasure):
     player_health = player_stats['health']
     while player_health > 0 and monster_health > 0:
         monster_health = player_attack(monster_health)
-        display_player_status(player_health)
+        display_player_status(player_stats)
         if monster_health <= 0:
             print("You defeated the monster!")
             return has_treasure
@@ -125,6 +156,7 @@ def check_for_treasure(has_treasure):
         print("The monster did not have the treasure. You continue your journey.")
 
 def discover_artifact(player_stats, artifacts, artifact_name):
+    """This is for artifacts."""
     if artifact_name:
         print(artifact_name)
         if artifacts[artifact_name]["effect"] == "increases health":
@@ -152,14 +184,11 @@ def main():
     """Main game loop."""
 
     dungeon_rooms = [
-    ("Dusty library", "key", "puzzle",
-    ("Solved puzzle!", "Puzzle unsolved.", -5)),
-    ("Narrow passage, creaky floor", "torch", "trap",
-    ("Avoided trap!", "Triggered trap!", -10)),
+    ("Dusty library", "key", "puzzle",("Solved puzzle!", "Puzzle unsolved.", -5)),
+    ("Narrow passage, creaky floor", "torch", "trap",("Avoided trap!", "Triggered trap!", -10)),
     ("Grand hall, shimmering pool", "healing potion", "none", None),
-    ("Small room, locked chest", "treasure", "puzzle",
-    ("Cracked code!", "Chest locked.", -5)),
-    ("Cryptic Library", None, "library", None)
+    ("Small room, locked chest", "treasure", "puzzle",("Cracked code!", "Chest locked.", -5)),
+    ("A vast library filled with ancient, cryptic texts", None, "library", None)
     ]
     player_stats = {'health': 100, 'attack': 5}
     monster_health = 70
@@ -192,6 +221,7 @@ def main():
             check_for_treasure(treasure_obtained_in_combat)
 
         if random.random() < 0.3:
+            #allows us to view the dictionary
             artifact_keys = list(artifacts.keys())
             if artifact_keys:
                 artifact_name = random.choice(artifact_keys)
