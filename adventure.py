@@ -63,17 +63,82 @@ def display_inventory(inventory):
             #to get the items position in the list
             print(f"{inventory.index(item) + 1}. {item}")
 
+def display_player_status(player_health):
+    """This displays player status"""
+    print(f"Your current health: {player_health}")
+
+def handle_path_choice(player_health):
+    """This is for the choice to go left or right"""
+    path = random.choice(["left", "right"])
+    if path == "left":
+        print("You encounter a friendly gnome who heals you for 10 health points.")
+        updated_player_health = player_health + 10
+        if updated_player_health > 100:
+            updated_player_health = 100
+    else:
+        print("You fall into a pit and lose 15 health points")
+        updated_player_health = player_health - 15
+        if updated_player_health <= 0:
+            updated_player_health = 0
+            print("You are barely alive!")
+    return updated_player_health
+
+def player_attack(monster_health):
+    """This is for the player attack"""
+    print("You strike the monster for 15 damage!")
+    updated_monster_health = monster_health - 15
+    return updated_monster_health
+
+def monster_attack(player_health):
+    """This is for the monster attack"""
+    critical_hit_chance = random.random()
+    if critical_hit_chance >= 0.5:
+        updated_player_health = player_health - 10
+        print("The monster hits you for 10 damage!")
+    else:
+        updated_player_health = player_health - 20
+        print("The monster lands a critical hit for 20 damage!")
+    return updated_player_health
+
+def combat_encounter(player_health, monster_health, has_treasure):
+    """This is for the combat loop with the player and the monster"""
+    while player_health > 0 and monster_health > 0:
+        monster_health = player_attack(monster_health)
+        display_player_status(player_health)
+        if monster_health <= 0:
+            print("You defeated the monster!")
+            return has_treasure
+        player_health = monster_attack(player_health)
+        if player_health <= 0:
+            print("Game over!")
+            return False
+
+def check_for_treasure(has_treasure):
+    """This is to check for treasure"""
+    if has_treasure:
+        print("You found the hidden treasure! You win!")
+    else:
+        print("The monster did not have the treasure. You continue your journey.")
+
 def discover_artifact(player_stats, artifacts, artifact_name):
     if artifact_name:
         print(artifact_name)
-        if artifacts["amulet_of_vitality"]["effect"] == "increases health":
-            updated_health = player_stats["player_health"] + artifacts["amulet_of_vitality"]["power"]
+        if artifacts[artifact_name]["effect"] == "increases health":
+            updated_health = player_stats["health"] + artifacts[artifact_name]["power"]
             update_dict = {
-            "player_health" : updated_health
+            "health" : updated_health
             }
             player_stats.update(update_dict)
-            print(f"The amulet_of_vitality increased your health by {artifacts['amulet_of_vitality']['power']} points!")
+            print(f"The amulet_of_vitality increased your health by {artifacts[artifact_name]['power']} points!")
             del artifacts["amulet_of_vitality"]
+        if artifacts[artifact_name]["effect"] == "enhances attack":
+            updated_attack = player_stats["attack"] + artifacts[artifact_name]["power"]
+            update_dict = {
+            "attack" : updated_attack
+            }
+            player_stats.update(update_dict)
+            print(f"The ring of power enhanced your attack by {artifacts[artifact_name]['power']} points!")
+            del artifacts["ring_of_power"]
     else:
         print("You found nothing of interest.")
 
