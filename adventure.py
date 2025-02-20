@@ -1,11 +1,9 @@
 import random
-import adventure
 
-def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
+def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
     """
     this goes through different rooms
     """
-    player_health = player_stats['health']
     for room in dungeon_rooms:
         print(room[0])
         if room[1]:
@@ -20,9 +18,9 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
                 else:
                     print(room[3][1])
                     #Updating player health
-            updated_player_health = player_health + room[3][2]
-            if updated_player_health < 0:
-                updated_player_health = 0
+            player_stats["health"] += room[3][2]
+            if player_stats["health"] < 0:
+                player_stats["health"] = 0
                 print("You are barely alive!")
 
         elif room[2] == "trap":
@@ -35,9 +33,9 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
                 else:
                     print(room[3][1])
                     #Updating player health
-            updated_player_health = player_health + room[3][2]
-            if updated_player_health < 0:
-                updated_player_health = 0
+            player_stats["health"] += room[3][2]
+            if player_stats["health"] < 0:
+                player_stats["health"] = 0
                 print("You are barely alive!")
 
         elif room[2] == "library":
@@ -56,8 +54,8 @@ def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
             print("There doesn't seem to be a challenge in this room. You move on.")
         display_inventory(inventory)
 
-    print(f"Your current health: {updated_player_health}")
-    updated_dict = {"health" : updated_player_health}
+    print(f"Your current health: {player_stats['health']}")
+    updated_dict = {"health" : player_stats['health']}
     """Updating player health"""
     player_stats.update(updated_dict)
     return player_stats, inventory, clues
@@ -230,7 +228,7 @@ def main():
                 display_player_status(player_stats)
 
         if player_stats['health'] > 0:
-            player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts)
+            player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues)
             print("\n--- Game End ---")
             display_player_status(player_stats)
             print("Final Inventory:")
