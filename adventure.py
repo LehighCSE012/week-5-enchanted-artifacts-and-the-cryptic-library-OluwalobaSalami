@@ -1,6 +1,7 @@
 import random
+import adventure
 
-def enter_dungeon(player_stats, inventory, dungeon_rooms, clues):
+def enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts):
     """
     this goes through different rooms
     """
@@ -68,7 +69,7 @@ def find_clue(clues, new_clue):
     else:
         """add new clue"""
         clues.add(new_clue)
-        print(f"You discovered a new clue: {[new_clue]}")
+        print(f"You discovered a new clue: {new_clue}")
     return clues
 
 def acquire_item(inventory, item):
@@ -159,30 +160,30 @@ def discover_artifact(player_stats, artifacts, artifact_name):
     """This is for artifacts."""
     if artifact_name:
         print(artifact_name)
-        if artifacts[artifact_name]["effect"] == "increases health":
-            updated_health = player_stats["health"] + artifacts[artifact_name]["power"]
-            update_dict = {
-            'health' : updated_health
-            }
-            player_stats.update(update_dict)
-            print(f"The amulet_of_vitality increased your health by {artifacts[artifact_name]['power']} points!")
-            del artifacts["amulet_of_vitality"]
-        if artifacts[artifact_name]["effect"] == "enhances attack":
-            updated_attack = player_stats["attack"] + artifacts[artifact_name]["power"]
-            update_dict = {
-            'attack' : updated_attack
-            }
-            player_stats.update(update_dict)
-            print(f"The ring of power enhanced your attack by {artifacts[artifact_name]['power']} points!")
-            del artifacts["ring_of_power"]
-    else:
-        print("You found nothing of interest.")
+        if artifact_name in artifacts:
+            artifact = artifacts[artifact_name]
+            if artifact["effect"] == "increases health":
+                updated_health = player_stats["health"] + artifact["power"]
+                update_dict = {
+                    'health': updated_health
+                }
+                player_stats.update(update_dict)
+                print(f"The {artifact_name} increased your health by {artifact['power']} points!")
+            elif artifact["effect"] == "enhances attack":
+                updated_attack = player_stats["attack"] + artifact["power"]
+                update_dict = {
+                    'attack': updated_attack
+                }
+                player_stats.update(update_dict)
+                print(f"The {artifact_name} enhanced your attack by {artifact['power']} points!")
+            del artifacts[artifact_name]
+        else:
+            print(f"Artifact {artifact_name} not found!")
 
     return player_stats, artifacts
-            
+        
 def main():
     """Main game loop."""
-
     dungeon_rooms = [
     ("Dusty library", "key", "puzzle",("Solved puzzle!", "Puzzle unsolved.", -5)),
     ("Narrow passage, creaky floor", "torch", "trap",("Avoided trap!", "Triggered trap!", -10)),
@@ -229,7 +230,7 @@ def main():
                 display_player_status(player_stats)
 
         if player_stats['health'] > 0:
-            player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues)
+            player_stats, inventory, clues = enter_dungeon(player_stats, inventory, dungeon_rooms, clues, artifacts)
             print("\n--- Game End ---")
             display_player_status(player_stats)
             print("Final Inventory:")
